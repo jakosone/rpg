@@ -40,14 +40,32 @@
   (and (eql x a) (eql y b))
   )
 
-;;;X
-(defun gox ()
-  (incf *mapx*)
+;;;Go right
+(defun goright ()
+  (if (pcangoright)
+      (incf *mapx*)
+      (print "Error"))
   )
 
-;;;Y
-(defun goy ()
-  (incf *mapy*)
+;;;Go left
+(defun goleft ()
+  (if (pcangoleft)
+      (decf *mapx*)
+      (print "Error"))
+  )
+
+;;;Go up
+(defun goup ()
+  (if (pcangoup)
+      (incf *mapy*)
+      (print "Error"))
+  )
+
+;;;Go down
+(defun godown ()
+  (if (pcangodown)
+      (decf *mapy*)
+      (print "Error"))
   )
 
 ;;;Predicate - can you go up?
@@ -101,6 +119,25 @@
   (if (pcangoleft)
       (coordtoloc (- *mapx* 1) *mapy*)
       (format t "Cannot go there."))
+  )
+
+;;;Draw directions for current location
+(defun drawdirections ()
+  (if (pcangoup)
+      (format t "    ^  ~A" (whatup))
+      (format t "           "))
+  (terpri)
+  (if (pcangoleft)
+      (format t "        <  ~A" (whatleft))
+      (format t "      "))
+
+  (if (pcangoright)
+      (format t "           >  ~A" (whatright))
+      (format t "        "))
+  (terpri)
+  (if (pcangodown)
+      (format t "     v  ~A" (whatdown))
+      (format t ""))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
