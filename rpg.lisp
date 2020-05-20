@@ -34,8 +34,13 @@
         ((peqcoords x y 0 1) (setf location 'Woods))
         ((peqcoords x y 0 2) (setf location 'Field))
 	((peqcoords x y 0 3) (setf location 'Cottage))
+	((peqcoords x y 0 4) (setf location 'Road))
+
 	((peqcoords x y 1 0) (setf location 'Woods))
 	((peqcoords x y 1 1) (setf location 'Woods))
+	((peqcoords x y 1 2) (setf location 'Woods))
+
+	((peqcoords x y 2 0) (setf location 'Road))
 	
 	(t (setf location 'Unknown))
 	)
@@ -132,16 +137,16 @@
 ;;;Draw directions for current location
 (defun drawdirections ()
   (if (pcangoup)
-      (format t "    ^  ~A" (whatup))
+      (format t "      ^  ~A" (whatup))
       (format t "           "))
   (terpri)
   (if (pcangoleft)
       (format t "        <  ~A" (whatleft))
-      (format t "      "))
+      (format t "             "))
 
   (if (pcangoright)
       (format t "           >  ~A" (whatright))
-      (format t "        "))
+      (format t "                "))
   (terpri)
   (if (pcangodown)
       (format t "     v  ~A" (whatdown))
@@ -247,6 +252,8 @@
 
 ;;;Game Main function
 (defun game (character)
+  (setf *mapx* 0)
+  (setf *mapy* 0)
   (createitems 7)
   (let ((input 1))
     (loop while (> input '0) do
@@ -255,10 +262,20 @@
          (terpri)
 	 (format t "Location: ~A" (wherenow))
 	 (terpri)
-	 (format t "Enter number:")
+	 (format t
+		 "Enter number (1 up, 2 left, 3 right, 4 down:")
 	 (setf input (read))
-	 (addxp character 1)
+
+	 (cond ((eql input 1) (goup))
+	       ((eql input 2) (goleft))
+	       ((eql input 3) (goright))
+	       ((eql input 4) (godown))
+	       (t (format t "Error."))) 
+
+	 (if (member input '(1 2 3 4))
+	     (addxp character 1)
 	 )
     
+    )
     )
   )
