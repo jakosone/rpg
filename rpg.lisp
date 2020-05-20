@@ -29,13 +29,21 @@
 
 ;;;Get map location
 (defun coordtoloc (x y)
-  (cond ((peqcoords x y 0 0) (return-from coordtoloc 'Home))
-        ((peqcoords x y 0 1) (return-from coordtoloc 'Woods))
-	((peqcoords x y 1 0) (return-from coordtoloc 'Woods))
-	(t (return-from coordtoloc 'Unknown))
-	)
-  )
+  (let ((location nil))
+    (cond ((peqcoords x y 0 0) (setf location 'Home))
+        ((peqcoords x y 0 1) (setf location 'Woods))
+        ((peqcoords x y 0 2) (setf location 'Field))
+	((peqcoords x y 0 3) (setf location 'Cottage))
+	((peqcoords x y 1 0) (setf location 'Woods))
+	((peqcoords x y 1 1) (setf location 'Woods))
 	
+	(t (setf location 'Unknown))
+	)
+    (return-from coordtoloc location)
+  )
+  )
+
+;;;Predicate - are x=a and y=b?
 (defun peqcoords (x y a b)
   (and (eql x a) (eql y b))
   )
@@ -249,6 +257,7 @@
 	 (terpri)
 	 (format t "Enter number:")
 	 (setf input (read))
+	 (addxp character 1)
 	 )
     
     )
