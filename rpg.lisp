@@ -17,22 +17,50 @@
 (defvar *itemlist* '())
 (setf *itemlist* nil)
 
-;;;Table for possible items
+;;;Number of items
+(defvar *itemnumber* 0)
+(setf *itemnumber* 0)
+
+;;;List for possible items
+(defvar *items* '())
+(setf *items* nil)
+(push "Potion" *items*)
+(push "Key" *items*)
+(push "Sword" *items*)
 
 ;;;Generate item coordinates
 (defun createitems (count)
+  (setf *itemnumber* count)
   (dotimes (n count)
     (setf *itemlist*
 	  (push (list (random 10) (random 10)) *itemlist*))
     )
   )
 
-;;;
+;;;Set random items to coordinates
 (defun setitems ()
-  ;Check that itemlist is not null
-  (if not (null *itemlist*)
-      ())
+  (let ((i 0) (l (list-length *itemlist*)) )
+    (loop while (< i l) do
+	 ;Append random item to itemlist
+	 (setf *itemlist* (append *itemlist* (list (nth (random (list-length *items*)) *items*))))
+	 ;i++
+	 (incf i)
+	 )
+    )
   )
+
+;;;Get item for point in map if exists
+(defun iteminpoint (x y)
+  (let ((i 0))
+    (dotimes (n *itemnumber*)
+      (if (equal (list x y) (nth i *itemlist*))
+	  (return-from iteminpoint (nth (+ i *itemnumber*) *itemlist*))
+	  )
+      (incf i)
+      )
+    )
+  )
+    
 
 ;;;Is there an item in current location?
 (defun pitemhere ()
@@ -305,6 +333,7 @@
   (setf *mapy* 0)
   (resetxp character)
   (createitems 7)
+  (setitems)
   
   (let ((input 1))
     ;Game loop starts
