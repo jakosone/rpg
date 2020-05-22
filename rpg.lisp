@@ -17,13 +17,21 @@
 (defvar *itemlist* '())
 (setf *itemlist* nil)
 
+;;;Table for possible items
 
-;;;Put items in coordinates
+;;;Generate item coordinates
 (defun createitems (count)
   (dotimes (n count)
     (setf *itemlist*
 	  (push (list (random 10) (random 10)) *itemlist*))
     )
+  )
+
+;;;
+(defun setitems ()
+  ;Check that itemlist is not null
+  (if not (null *itemlist*)
+      ())
   )
 
 ;;;Is there an item in current location?
@@ -168,7 +176,7 @@
 
   (format t "~A" (whatleft))
   
-  (dotimes (n (- 10 (lengthreturn (whatleft))))
+  (dotimes (n (- 12 (lengthreturn (whatleft))))
     (format t " ")
     )
   
