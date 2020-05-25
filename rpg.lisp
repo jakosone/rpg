@@ -55,6 +55,15 @@
 (push "(L)" *itemrarity*)
 (push "(A)" *itemrarity*)
 
+;;;List for monster types
+(defvar *monstercat* '())
+(setf *monstercat* (list 'Dragon 'Demon 'Zombie 'Angel))
+
+;;;Get random element from a list
+(defun getrand (list)
+  (nth (random (list-length list)) list)
+  )
+
 ;;;Generate item coordinates
 (defun createitems (count)
   (setf *itemnumber* count)
@@ -336,6 +345,7 @@
 ;;;Decrease the health of a character
 (defun losehealth (character health)
   (setf (third character) (- (third character) health))
+  (if (< (third character) 0) (setf (third character) 0))
   )
 
 ;;;Get level for a character
@@ -394,10 +404,6 @@
     )
   )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;Random item function;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 ;;;Generate random magic item
 (defun magicitem ()
   (let* ((item nil))
@@ -409,18 +415,57 @@
     )
   )  
 
+;;;Make an AI monster (boss)
+(defun makeboss ()
+  ;List with monster type, x coordinate, y coordinate
+  (list (getrand *monstercat*) (random 10) (random 10))
+  )
+
+;;;Get boss location
+(defun bossloc (boss)
+  ;;Get boss's location
+  (format t "Location of boss: ~D, ~D" (second boss) (third boss))
+  )
+
+;;;Move boss to a random direction
+(defun moveboss (boss)
+  (let ((number (random 4))
+	(currx (second boss))
+	(curry (third boss)))
+    (cond
+      ;;Case left
+      ((eql number 0)
+       (if (> currx 0) (decf (second boss))))
+      ;;Case right
+      ((eql number 1)
+       (if (< currx *xmax*) (incf (second boss))))
+      ;;Case down
+      ((eql number 2)
+       (if (> curry 0) (decf (third boss))))
+      ;;Case up
+      ((eql number 3)
+       (if (< curry *ymax*) (incf (third boss))))
+      )
+    )
+  )   
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;Game Main function
 (defun game (character)
   (setf *mapx* 0)
   (setf *mapy* 0)
+  (setf (third character) 100)
   (resetxp character)
   (createitems 11)
   (setitems)
-  
-  (let ((input 1))
+
+  (let ((input 1) (boss nil))
+    (setf boss (makeboss))
+    (format t "Monster spawned in: ~D, ~D" (second boss) (third boss))
+    (terpri)
     ;Game loop starts
     (loop while (> input '0) do
+	 (moveboss boss)
 	 (setf *error* 0)
          (format t "**************************************")
          (terpri)
@@ -435,11 +480,19 @@
 	 (terpri)
 	 (format t "Monsters: ~A" (getmonster character))
 	 (terpri)
+	 (if (eql (third character) 0)
+	     (progn
+	       (format t "You died - Game over. ")
+	       (return)))
 	 (healthbar character)
 	 (terpri)
 	 (terpri)
 	 ;Draw what is around you
 	 (drawdirections)
+	 (terpri)
+	 (terpri)
+	 ;;Print the location of the boss character
+	 (bossloc boss)
 	 (terpri)
 	 (format t
 		 "Enter number:")
@@ -461,6 +514,7 @@
 	 
 	 ) ;Game loop ends
 
+    (terpri)
     (format t "XP result: ~D" (getxp character))
     )
   )
