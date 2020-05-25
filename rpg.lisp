@@ -28,6 +28,33 @@
 (push "Key" *items*)
 (push "Sword" *items*)
 
+;;;List for magic item categories
+(defvar *itemcat* '())
+(setf *itemcat* nil)
+(push 'Sword *itemcat*)
+(push 'Knife *itemcat*)
+(push 'Mace *itemcat*)
+(push 'Wand *itemcat*)
+(push 'Staff *itemcat*)
+
+;;;List for magic item suffixes
+(defvar *itemsuffix* '())
+(setf *itemsuffix* nil)
+(push 'Healing *itemsuffix*)
+(push 'Teleportation *itemsuffix*)
+(push 'Security *itemsuffix*)
+(push 'Protection *itemsuffix*)
+(push 'Regeneration *itemsuffix*)
+
+;;;List of magic item types
+(defvar *itemrarity* '())
+(setf *itemrarity* nil)
+(push "()" *itemrarity*)
+(push "(M)" *itemrarity*)
+(push "(R)" *itemrarity*)
+(push "(L)" *itemrarity*)
+(push "(A)" *itemrarity*)
+
 ;;;Generate item coordinates
 (defun createitems (count)
   (setf *itemnumber* count)
@@ -353,19 +380,34 @@
   (let ((value (random 100)))
     (cond ((> value 92)
 	   (losehealth character 15)
-	   (return-from getmonster "Legendary")
+	   (return-from getmonster "Legendary - critical hit!")
 	   )
 	  ((> value 80)
 	   (losehealth character 10)
-	   (return-from getmonster "Rare")
+	   (return-from getmonster "Rare - you lost health.")
 	   )
 	  ((> value 60)
 	   (losehealth character 5)
-	   (return-from getmonster "Magic")
+	   (return-from getmonster "Magic - some health lost.")
 	   )
 	  (t (return-from getmonster "No monster")))
     )
   )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;Random item function;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;Generate random magic item
+(defun magicitem ()
+  (let* ((item nil))
+    ;Select category at random
+    (setf item (append item (list (nth (random (list-length *itemcat*)) *itemcat*))))
+    (setf item (append item (list 'of)))
+    ;Select suffix/feature at random
+    (setf item (append item (list (nth (random (list-length *itemsuffix*)) *itemsuffix*))))
+    )
+  )  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;Game Main function
