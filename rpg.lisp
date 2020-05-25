@@ -51,8 +51,11 @@
 
 ;;;Get item for point in map if exists
 (defun iteminpoint (x y)
+  ;Initialize iteration variable
   (let ((i 0))
+    ;Number of loops: number of items
     (dotimes (n *itemnumber*)
+      ;Is (x y) in current iteration's element
       (if (equal (list x y) (nth i *itemlist*))
 	  (return-from iteminpoint (nth (+ i *itemnumber*) *itemlist*))
 	  )
@@ -88,8 +91,28 @@
 	((peqcoords x y 1 0) (setf location 'Woods))
 	((peqcoords x y 1 1) (setf location 'Woods))
 	((peqcoords x y 1 2) (setf location 'Woods))
+	((peqcoords x y 1 3) (setf location 'Road))
+	((peqcoords x y 1 4) (setf location 'Road))
 
 	((peqcoords x y 2 0) (setf location 'Road))
+	((peqcoords x y 2 1) (setf location 'Road))
+	((peqcoords x y 2 2) (setf location 'Road))
+	((peqcoords x y 2 3) (setf location 'Road))
+	((peqcoords x y 2 4) (setf location 'Road))
+
+	((peqcoords x y 3 0) (setf location 'Cave))
+	((peqcoords x y 3 1) (setf location 'Cave))
+	((peqcoords x y 3 2) (setf location 'Woods))
+	((peqcoords x y 3 3) (setf location 'Road))
+
+	((peqcoords x y 4 0) (setf location 'Cave))
+	((peqcoords x y 4 1) (setf location 'Cave))
+	((peqcoords x y 4 2) (setf location 'Cave))
+	((peqcoords x y 4 3) (setf location 'Road))
+
+	
+	((peqcoords x y 5 0) (setf location 'Cave))
+	((peqcoords x y 5 1) (setf location 'Cave))
 	
 	(t (setf location 'Unknown))
 	)
@@ -204,11 +227,9 @@
 
   (format t "~A" (whatleft))
   
-  (dotimes (n (- 12 (lengthreturn (whatleft))))
+  (dotimes (n (- 13 (lengthreturn (whatleft))))
     (format t " ")
     )
-  
-  
   
   (format t "2  @  3")
   
@@ -313,7 +334,7 @@
 
 ;;;Present character as text
 (defun present (character)
-  (format t "You are ~A, a ~A ~A with ~D XP. "
+  (format t "~A, ~A ~A with ~D XP. "
 	  (getname character) (getrank character)
 	  (getclass character) (getxp character))
   (terpri)
@@ -321,18 +342,38 @@
       (format t "You are carrying: ~A" (getinventory character))
       (format t "You are not carrying anything."))
   (terpri)
-  (terpri)
-  (format t "Health:")
-  (terpri)
-  (healthbar character)
   )
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;Monster functions;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;Random monster
+(defun getmonster (character)
+  (let ((value (random 100)))
+    (cond ((> value 92)
+	   (losehealth character 15)
+	   (return-from getmonster "Legendary")
+	   )
+	  ((> value 80)
+	   (losehealth character 10)
+	   (return-from getmonster "Rare")
+	   )
+	  ((> value 60)
+	   (losehealth character 5)
+	   (return-from getmonster "Magic")
+	   )
+	  (t (return-from getmonster "No monster")))
+    )
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;Game Main function
 (defun game (character)
   (setf *mapx* 0)
   (setf *mapy* 0)
   (resetxp character)
-  (createitems 7)
+  (createitems 11)
   (setitems)
   
   (let ((input 1))
@@ -348,10 +389,12 @@
 	 ;Print current location
 	 (format t "Location: ~A" (wherenow))
 	 (terpri)
+	 (format t "Items: ~A" (iteminpoint *mapx* *mapy*))
 	 (terpri)
-	 (if (pitemhere)
-	     (format t "There is an item here.")
-	     (format t "Nothing here..."))
+	 (format t "Monsters: ~A" (getmonster character))
+	 (terpri)
+	 (healthbar character)
+	 (terpri)
 	 (terpri)
 	 ;Draw what is around you
 	 (drawdirections)
