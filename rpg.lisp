@@ -7,14 +7,14 @@
 (defvar *mapy* '0)
 
 ;;;Max values for map size
-(defvar *xmax* 10)
-(defvar *ymax* 10)
+(defvar *xmax* 5)
+(defvar *ymax* 9)
 
 ;;;Input error flag
 (defvar *error* 0)
 
 ;;:List for items in the map
-(defvar *itemlist* '())
+(defvar *itemlist* nil)
 (setf *itemlist* nil)
 
 ;;;Number of items
@@ -22,13 +22,13 @@
 (setf *itemnumber* 0)
 
 ;;;List for possible items
-(defvar *items* '())
+(defvar *items* nil)
 (setf *items* nil)
 (push "Potion" *items*)
 (push "Key" *items*)
 (push "Sword" *items*)
 
-;;;List for magic item categories
+;;;List for magic item (weapon) categories
 (defvar *itemcat* '())
 (setf *itemcat* nil)
 (push 'Sword *itemcat*)
@@ -37,7 +37,7 @@
 (push 'Wand *itemcat*)
 (push 'Staff *itemcat*)
 
-;;;List for magic item suffixes
+;;;List for magic item (weapon) suffixes
 (defvar *itemsuffix* '())
 (setf *itemsuffix* nil)
 (push 'Healing *itemsuffix*)
@@ -102,7 +102,7 @@
     
 
 ;;;Is there an item in current location?
-(defun pitemhere ()
+(defun item-here-p ()
   (member (list *mapx* *mapy*) *itemlist* :test 'equal)
   )
 
@@ -118,37 +118,48 @@
 ;;;Get map location
 (defun coordtoloc (x y)
   (let ((location nil))
-    (cond ((peqcoords x y 0 0) (setf location 'Home))
-        ((peqcoords x y 0 1) (setf location 'Woods))
-        ((peqcoords x y 0 2) (setf location 'Field))
-	((peqcoords x y 0 3) (setf location 'Cottage))
-	((peqcoords x y 0 4) (setf location 'Road))
+    (cond ((eq-coords-p x y 0 0) (setf location 'Home))
+        ((eq-coords-p x y 0 1) (setf location 'Woods))
+        ((eq-coords-p x y 0 2) (setf location 'Field))
+	((eq-coords-p x y 0 3) (setf location 'Cottage))
+	((eq-coords-p x y 0 4) (setf location 'Road))
 
-	((peqcoords x y 1 0) (setf location 'Woods))
-	((peqcoords x y 1 1) (setf location 'Woods))
-	((peqcoords x y 1 2) (setf location 'Woods))
-	((peqcoords x y 1 3) (setf location 'Road))
-	((peqcoords x y 1 4) (setf location 'Road))
+	((eq-coords-p x y 1 0) (setf location 'Woods))
+	((eq-coords-p x y 1 1) (setf location 'Woods))
+	((eq-coords-p x y 1 2) (setf location 'Woods))
+	((eq-coords-p x y 1 3) (setf location 'Road))
+	((eq-coords-p x y 1 4) (setf location 'Road))
 
-	((peqcoords x y 2 0) (setf location 'Road))
-	((peqcoords x y 2 1) (setf location 'Road))
-	((peqcoords x y 2 2) (setf location 'Road))
-	((peqcoords x y 2 3) (setf location 'Road))
-	((peqcoords x y 2 4) (setf location 'Road))
+	((eq-coords-p x y 2 0) (setf location 'Road))
+	((eq-coords-p x y 2 1) (setf location 'Road))
+	((eq-coords-p x y 2 2) (setf location 'Road))
+	((eq-coords-p x y 2 3) (setf location 'Road))
+	((eq-coords-p x y 2 4) (setf location 'Road))
 
-	((peqcoords x y 3 0) (setf location 'Cave))
-	((peqcoords x y 3 1) (setf location 'Cave))
-	((peqcoords x y 3 2) (setf location 'Woods))
-	((peqcoords x y 3 3) (setf location 'Road))
+	((eq-coords-p x y 3 0) (setf location 'Cave))
+	((eq-coords-p x y 3 1) (setf location 'Cave))
+	((eq-coords-p x y 3 2) (setf location 'Woods))
+	((eq-coords-p x y 3 3) (setf location 'Road))
 
-	((peqcoords x y 4 0) (setf location 'Cave))
-	((peqcoords x y 4 1) (setf location 'Cave))
-	((peqcoords x y 4 2) (setf location 'Cave))
-	((peqcoords x y 4 3) (setf location 'Road))
+	((eq-coords-p x y 4 0) (setf location 'Cave))
+	((eq-coords-p x y 4 1) (setf location 'Cave))
+	((eq-coords-p x y 4 2) (setf location 'Cave))
+	((eq-coords-p x y 4 3) (setf location 'Road))
+	((eq-coords-p x y 4 4) (setf location 'Road))
+	((eq-coords-p x y 4 5) (setf location 'Woods))
 
 	
-	((peqcoords x y 5 0) (setf location 'Cave))
-	((peqcoords x y 5 1) (setf location 'Cave))
+	((eq-coords-p x y 5 0) (setf location 'Cave))
+	((eq-coords-p x y 5 1) (setf location 'Cave))
+	((eq-coords-p x y 5 2) (setf location 'Cave))
+	((eq-coords-p x y 5 3) (setf location 'Cave))
+	((eq-coords-p x y 5 4) (setf location 'Road))
+	((eq-coords-p x y 5 5) (setf location 'Woods))
+	((eq-coords-p x y 5 6) (setf location 'Castle))
+	((eq-coords-p x y 5 7) (setf location 'Castle))
+	((eq-coords-p x y 5 8) (setf location 'Castle))
+	((eq-coords-p x y 5 9) (setf location 'Castle))
+	
 	
 	(t (setf location 'Unknown))
 	)
@@ -156,95 +167,97 @@
   )
   )
 
-;;;Predicate - are x=a and y=b?
-(defun peqcoords (x y a b)
+(defun eq-coords-p (x y a b)
+  "Returns true if x=a AND y=b"
   (and (eql x a) (eql y b))
   )
 
 ;;;Go right
 (defun goright ()
-  (if (pcangoright)
+  "Advance to right by one on map"
+  (if (can-go-right-p)
       (incf *mapx*)
-      (setf *error* 1))
+      (setf *error* 1)) ;Raise error flag
   )
 
 ;;;Go left
 (defun goleft ()
-  (if (pcangoleft)
+  "Advance to left by one on map"
+  (if (can-go-left-p)
       (decf *mapx*)
-      (setf *error* 1))
+      (setf *error* 1)) ;Raise error flag
   )
 
-;;;Go up
 (defun goup ()
-  (if (pcangoup)
+  "Advance up by one on map"
+  (if (can-go-up-p)
       (incf *mapy*)
-      (setf *error* 1))
+      (setf *error* 1)) ;Raise error flag
   )
 
-;;;Go down
 (defun godown ()
-  (if (pcangodown)
+  "Advance down by one on map"
+  (if (can-go-down-p)
       (decf *mapy*)
-      (setf *error* 1))
+      (setf *error* 1)) ;Raise error flag
   )
 
-;;;Predicate - can you go up?
-(defun pcangoup ()
+(defun can-go-up-p ()
+  "Returns true if possible to go up"
   (< *mapy* *ymax*)
   )
 
-;;;Predicate - can you go down?
-(defun pcangodown ()
+(defun can-go-down-p ()
+  "Returns true if possible to go down"
   (> *mapy* '0)
   )
 
-;;;Predicate - can you go right?
-(defun pcangoright ()
+(defun can-go-right-p ()
+  "Returns true if possible to go right"
   (< *mapx* *xmax*)
   )
 
-;;;Predicate - can you go left?
-(defun pcangoleft ()
+(defun can-go-left-p ()
+  "Returns true if possible to go left"
   (> *mapx* '0)
   )
 
-;;;Where are you now?
 (defun wherenow ()
+  "Returns current coordinates"
   (coordtoloc *mapx* *mapy*)
   )
 
-;;;Peeker for up in the map
 (defun whatup ()
-  (if (pcangoup)
+  "Returns the location above"
+  (if (can-go-up-p)
       (coordtoloc *mapx* (+ *mapy* 1))
       (return-from whatup ""))
   )
 
-;;;Peeker for down in the map
 (defun whatdown ()
-  (if (pcangodown)
+  "Returns the location below"
+  (if (can-go-down-p)
       (coordtoloc *mapx* (- *mapy* 1))
       (return-from whatdown ""))
   )
 
-;;;Peeker for right in the map
 (defun whatright ()
-  (if (pcangoright)
+  "Returns the location on the right"
+  (if (can-go-right-p)
       (coordtoloc (+ *mapx* 1) *mapy*)
       (return-from whatright ""))
   )
 
-;;;Peeker for left in the map
 (defun whatleft ()
-  (if (pcangoleft)
+  "Returns the location on the left"
+  (if (can-go-left-p)
       (coordtoloc (- *mapx* 1) *mapy*)
       (return-from whatleft ""))
   )
 
 ;;;Draw directions for current location
 (defun drawdirections ()
-  (if (pcangoup)
+  (if (can-go-up-p)
       (format t "                  ^  ~A" (whatup))
       (format t "                       "))
   (terpri)
@@ -259,7 +272,7 @@
 
   ;"left"-portion in map screen
   
-  (if (pcangoleft) (format t "< ") (format t "  "))
+  (if (can-go-left-p) (format t "< ") (format t "  "))
 
   (format t "~A" (whatleft))
   
@@ -269,27 +282,28 @@
   
   (format t "2  @  3")
   
-  (if (pcangoright)
+  (if (can-go-right-p)
       (format t "    >  ~A" (whatright))
       (format t "         "))
   (terpri)
   (format t "                  4")
   (terpri)
-  (if (pcangodown)
+  (if (can-go-down-p)
       (format t "                  v  ~A" (whatdown))
       (format t ""))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;Creators, getters, setters;;;
+;;;Creaters, getters, setters;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;Creating a character (list)
 (defun newcharacter (name class)
+  "Creates a new character (list)"
   (list name class '100 '0 (newinventory))
   )
 
 (defun makechar ()
+  "Creates a new character with user provided name and class"
   (let ((name nil) (class nil))
     (format t "Enter name:")
     (setf name (read))
@@ -299,31 +313,31 @@
     )
   )
 
-;;;Getter for character name
 (defun getname (character)
+  "Returns the name of the character"
   (first character)
   )
 
-;;;Getter for character class
 (defun getclass (character)
+  "Returns the class of the character"
   (second character)
   )
 
-;;;Getter for character health
 (defun gethealth (character)
+  "Returns health of the character"
   (third character)
   )
 
-;;;Present health bar for a character
 (defun healthbar (character)
+  "Visual representation of the character's health"
   (format t "[")
   (dotimes (n (truncate (/ (gethealth character) 2)))
 	   (format t "|"))
   (format t "] ~D %" (gethealth character))
   )
 
-;;;Getter for character XP points
 (defun getxp (character)
+  "Returns XP points for the character"
   (fourth character)
   )
 
@@ -361,12 +375,16 @@
   (list ())
   )
 
-;;;Adding an item in an inventory of a character
+;;;Adding an item to the inventory of a character
 (defun additem (character item)
   (if (null (car (getinventory character)))
       (setf (fifth character) (list item))
       (setf (fifth character) (push item (fifth character)))
       )
+  )
+
+(defun item-prompt (character)
+  "Asks if player wants to pick up item if exists"
   )
 
 ;;;Present character as text
@@ -404,8 +422,8 @@
     )
   )
 
-;;;Generate random magic item
-(defun magicitem ()
+(defun magic-weapon ()
+  "Generate a random magic weapon"
   (let* ((item nil))
     ;Select category at random
     (setf item (append item (list (nth (random (list-length *itemcat*)) *itemcat*))))
@@ -413,7 +431,13 @@
     ;Select suffix/feature at random
     (setf item (append item (list (nth (random (list-length *itemsuffix*)) *itemsuffix*))))
     )
-  )  
+  )
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'
+;;;;;;;BOSS FUNCTIONS;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;Make an AI monster (boss)
 (defun makeboss ()
@@ -425,6 +449,15 @@
 (defun bossloc (boss)
   ;;Get boss's location
   (format t "Location of boss: ~D, ~D" (second boss) (third boss))
+  )
+
+(defun meetboss (boss character)
+  "Checks if the boss is in your location and makes you lose health"
+  (if (and (eql (second boss) *mapx*) (eql (third boss) *mapy*))
+      (progn
+	(losehealth character '40)
+	(format t "You met the boss and lost health!")
+	(terpri)))
   )
 
 ;;;Move boss to a random direction
@@ -466,17 +499,19 @@
     ;Game loop starts
     (loop while (> input '0) do
 	 (moveboss boss)
+	 (meetboss boss character)
 	 (setf *error* 0)
          (format t "**************************************")
          (terpri)
 	 ;Show the status of the character
 	 (present character)
 	 (terpri)
-         (terpri)
 	 ;Print current location
-	 (format t "Location: ~A" (wherenow))
+	 (format t "Location: ~A (~D,~D)" (wherenow) *mapx* *mapy*)
 	 (terpri)
 	 (format t "Items: ~A" (iteminpoint *mapx* *mapy*))
+	 (terpri)
+	 (random-item)
 	 (terpri)
 	 (format t "Monsters: ~A" (getmonster character))
 	 (terpri)
