@@ -1,7 +1,13 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;RPG 2;;;;;;;;;;;;;
-;;;The refactored version;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                                    ;;;
+;;;   ====   ====    ====    ========  ;;;
+;;;   I   I  I   I  I   \\    II  II   ;;;
+;;;   ====   I===   I  ___    II  II   ;;;
+;;;   I \\   I      I   II    II  II   ;;;
+;;;   I  \\  I       ===//   ========  ;;;
+;;;                                    ;;;
+;;;The refactored version;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -27,22 +33,38 @@
 
 ;;;;;Global variables;;;;;;
 
+;;;Map size
+(defvar *mapdim* nil)
+(setq *mapdim* 30)
+
+;;;Monster list
+(defvar *monsters* nil)
+
 ;;;Monster objects for testing
 (defvar *mon1* nil)
 (defvar *mon2* nil)
+(defvar *mon3* nil)
 (setq *mon1* (make-instance 'monster :avatar '@ :location '(20 . 10)))
-(setq *mon2* (make-instance 'monster :avatar '& :location '(40 . 30)))
+(setq *mon2* (make-instance 'monster :avatar '& :location '(5 . 20)))
+(setq *mon3* (make-instance 'monster :avatar '% :location '(3 . 9)))
+(setq *monsters* (cons *mon1* nil))
+(setq *monsters* (cons *mon2* *monsters*))
+(setq *monsters* (cons *mon3* *monsters*))
 
 (defun debug-rpg ()
-  (get-monster *mon1*) (terpri)
-  (get-monster *mon2*) (terpri)
-  (format t "Distance: ~A" (loc-difference *mon1* *mon2*)) (terpri)
+  "Debug function"
+  ;(get-monster *mon1*) (terpri)
+  ;(get-monster *mon2*) (terpri)
+  ;(format t "Distance: ~A" (loc-difference *mon1* *mon2*)) (terpri)
   (advance-to-dir *mon1* (random-dir *mon1*)) (terpri)
-  (advance-to-dir *mon2* (random-dir *mon2*)) (terpri))
+  (advance-to-dir *mon2* (random-dir *mon2*)) (terpri)
+  (advance-to-dir *mon3* (random-dir *mon3*)) (terpri))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;Functions;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                                 ;;;
+;;;        Functions                ;;;
+;;;                                 ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun rpg ()
   "Main function"
@@ -50,6 +72,7 @@
     (loop while (>= iteration 0) do
 	 (incf iteration)
 	 (debug-rpg)
+	 (print-map)(terpri)
 	 (setq input (read))
 	 (if (equal input 'Q) (setq iteration -1)))))
        
@@ -86,10 +109,27 @@
   "True if X or Y is negative"
   (or (minusp (car xy-loc)) (minusp (cdr xy-loc))))
 
+(defun xmax ()
+  "Max value of X coordinate"
+  (- *mapdim* 1))
+
+(defun ymax ()
+  "Max value of Y coordinate"
+  (- *mapdim* 1))
+
+(defun same-loc-p (xy-loc1 xy-loc2)
+  "Return true if two locations are the same"
+  (and
+   (equal (car xy-loc1) (car xy-loc2))
+   (equal (cdr xy-loc1) (cdr xy-loc2))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;CLOS methods;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;Monster methods;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-monster ((obj monster))
   "Get information of monster"
@@ -119,6 +159,10 @@
   "Get level of a monster"
   (level obj))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;Locational methods;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defmethod set-location ((obj monster) loc)
   "Set location of a monster"
   (with-slots (location) obj
@@ -130,11 +174,28 @@
    (abs (- (car (get-location obj1)) (car (get-location obj2))))
    (abs (- (cdr (get-location obj1)) (cdr (get-location obj2))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;Directional methods;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defmethod available-dir ((obj monster))
   "Available directions for a monster"
   (cond
+    ;;; x=0 & y=0
     ((and (zerop (x-loc obj)) (zerop (y-loc obj))) '(up right))
+    ;;; x=max & y=max
+    ((and (equal (x-loc obj) (xmax)) (equal (y-loc obj) (ymax))) '(down left))
+    ;;; x=0 & y=max
+    ((and (zerop (x-loc obj)) (equal (y-loc obj) (ymax))) '(down right))
+    ;;; x=max & y=0
+    ((and (equal (x-loc obj) (xmax)) (zerop (y-loc obj))) '(up left))
+    ;;; x=max
+    ((equal (x-loc obj) (xmax)) '(up down left))
+    ;;; y=max
+    ((equal (y-loc obj) (ymax)) '(down left right))
+    ;;; x=0
     ((zerop (x-loc obj)) '(up right down))
+    ;;; y=0
     ((zerop (y-loc obj)) '(up right left))
     (t '(up right down left))))
 
@@ -153,3 +214,30 @@
     ((equal direction 'left) (set-location obj (x-1 (get-location obj))))))
     
     
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                                  ;;;
+;;;    User interface functions      ;;;
+;;;                                  ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun monsters-in-point (xy-point)
+  "Return monsters in point"
+  (let ((list nil))
+    (loop for mon in *monsters* do
+	 (if (same-loc-p (get-location mon) xy-point)
+	     (setq list (append list mon))))
+    list))
+       
+(defun print-map ()
+  "Print the map with monsters"
+  (loop repeat (+ 2 *mapdim*) do (format t "=")) ;top frame
+  (terpri)
+  (dotimes (i *mapdim*) ;iterate rows
+    (format t "I")
+    (dotimes (j *mapdim*) ;iterate columns inside a row
+      (if (monsters-in-point (cons j (- *mapdim* i)))
+	  (format t "~A" (get-avatar (monsters-in-point (cons j (- *mapdim* i)))))
+	  (format t " ")))
+    (format t "I")
+    (terpri))
+  (loop repeat (+ 2 *mapdim*) do (format t "="))) ;bottom frame
