@@ -29,7 +29,11 @@
    (location
     :initarg :location
     :initform '(0 . 0)
-    :accessor location)))
+    :accessor location)
+   (player
+    :initarg :player
+    :initform nil
+    :accessor player)))
 
 ;;;;;Global variables;;;;;;
 
@@ -37,19 +41,29 @@
 (defvar *mapdim* nil)
 (setq *mapdim* 30)
 
+;;;Game iterations
+(defvar *rpg-iter* nil)
+(setq *rpg-iter* 0)
+
 ;;;Monster list
 (defvar *monsters* nil)
 
 ;;;Monster objects for testing
+(defvar *player* nil)
 (defvar *mon1* nil)
 (defvar *mon2* nil)
 (defvar *mon3* nil)
-(setq *mon1* (make-instance 'monster :avatar '@ :location '(20 . 10)))
-(setq *mon2* (make-instance 'monster :avatar '& :location '(5 . 20)))
+;;;Make class instances, monsters
+(setq *player* (make-instance 'monster :avatar 'P :location '(0 . 0) :player T)) 
+(setq *mon1* (make-instance 'monster :avatar '@ :location '(29 . 29)))
+(setq *mon2* (make-instance 'monster :avatar '& :location '(0 . 20)))
 (setq *mon3* (make-instance 'monster :avatar '% :location '(3 . 9)))
-(setq *monsters* (cons *mon1* nil))
-(setq *monsters* (cons *mon2* *monsters*))
-(setq *monsters* (cons *mon3* *monsters*))
+;;;Assign objects to global variables
+(setq *monsters* nil)
+(setq *monsters* (append2 *monsters* *player*))
+(setq *monsters* (append2 *monsters* *mon1*))
+(setq *monsters* (append2 *monsters* *mon2*))
+(setq *monsters* (append2 *monsters* *mon3*))
 
 (defun debug-rpg ()
   "Debug function"
@@ -58,7 +72,10 @@
   ;(format t "Distance: ~A" (loc-difference *mon1* *mon2*)) (terpri)
   (advance-to-dir *mon1* (random-dir *mon1*)) (terpri)
   (advance-to-dir *mon2* (random-dir *mon2*)) (terpri)
-  (advance-to-dir *mon3* (random-dir *mon3*)) (terpri))
+  (advance-to-dir *mon3* (random-dir *mon3*)) (terpri)
+  (confront *mon1* *player*)
+  (confront *mon2* *player*)
+  (confront *mon3* *player*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;                                 ;;;
@@ -68,13 +85,14 @@
 
 (defun rpg ()
   "Main function"
-  (let ((input nil) (iteration 0))
-    (loop while (>= iteration 0) do
-	 (incf iteration)
+  (let ((input nil))
+    (loop while (>= *rpg-iter* 0) do
+	 (incf *rpg-iter*)
 	 (debug-rpg)
 	 (print-map)(terpri)
 	 (setq input (read))
-	 (if (equal input 'Q) (setq iteration -1)))))
+	 (advance-player *player* input)
+	 (if (equal input 'Q) (setq *rpg-iter* -1)))))
        
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;UI functions;;;;;;;;;;;;;;;;;;;;;
@@ -123,6 +141,13 @@
    (equal (car xy-loc1) (car xy-loc2))
    (equal (cdr xy-loc1) (cdr xy-loc2))))
 
+(defun append2 (list element)
+  "Apply an element to a list"
+  (if (null list)
+      (setq list (cons element nil))
+      (setq list (cons element list))))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;CLOS methods;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -151,6 +176,11 @@
   "Get health of a monster"
   (health obj))
 
+(defmethod set-health ((obj monster) change)
+  "Set health for a monster object"
+  (with-slots (health) obj
+    (setq health (+ health change))))
+
 (defmethod get-avatar ((obj monster))
   "Get the avatar of a monster"
   (avatar obj))
@@ -158,6 +188,10 @@
 (defmethod get-level ((obj monster))
   "Get level of a monster"
   (level obj))
+
+(defmethod playerp ((obj monster))
+  "Returns true if a player object"
+  (player obj))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;Locational methods;;;;;;;;;;;;
@@ -170,9 +204,31 @@
 
 (defmethod loc-difference ((obj1 monster) (obj2 monster))
   "Get the difference of two monsters' locations"
-  (cons
+  (+
    (abs (- (car (get-location obj1)) (car (get-location obj2))))
    (abs (- (cdr (get-location obj1)) (cdr (get-location obj2))))))
+
+(defmethod player-direction ((mon monster) (player monster))
+  "What direction the player is in from the monster"
+  (cond
+    ;;;X is the same, monster's Y higher
+    ((and (equal (x-loc mon) (x-loc player))
+	  (> (y-loc mon) (y-loc player))) 'down)
+    ;;;X is the same, player's Y higher
+    ((and (equal (x-loc mon) (x-loc player))
+	  (< (y-loc mon) (y-loc player))) 'up)
+    ;;;Y is the same, monster's X higher
+    ((and (> (x-loc mon) (x-loc player))
+	  (equal (y-loc mon) (y-loc player))) 'left)
+    ;;;Y is the same, player's X higher
+    ((and (< (x-loc mon) (x-loc player))
+	  (equal (y-loc mon) (y-loc player))) 'right)
+    (T "not in a straight line or in same position")))
+     
+(defmethod confront ((mon monster) (player monster))
+  "Hurt player if in same position with a monster"
+  (if (same-loc-p (get-location mon) (get-location player))
+      (set-health player -5)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;Directional methods;;;;;;;;;;;;;;
@@ -201,9 +257,15 @@
 
 (defmethod random-dir ((obj monster))
   "Select a direction randomly (for simulation etc.)"
-  (let* ((available-dirs (available-dir obj))
-	(rand-dir (nth (random (length available-dirs)) available-dirs)))
-    rand-dir))
+  (if
+   ;;;If distance is under 5 and only on every other time...
+   (and (< (loc-difference obj *player*) 5) (equal 0 (mod *rpg-iter* 2)))
+   ;;;...move to player's direction
+   (player-direction obj *player*)
+   ;;;Else move randomly
+   (let* ((available-dirs (available-dir obj))
+	  (rand-dir (nth (random (length available-dirs)) available-dirs)))
+     rand-dir)))
 
 (defmethod advance-to-dir ((obj monster) direction)
   "Advance monster to a direction"
@@ -212,7 +274,19 @@
     ((equal direction 'down) (set-location obj (y-1 (get-location obj))))
     ((equal direction 'right) (set-location obj (x+1 (get-location obj))))
     ((equal direction 'left) (set-location obj (x-1 (get-location obj))))))
-    
+
+(defmethod advance-player ((player monster) input)
+  "Advance player according to user input"
+  (cond
+    ((and (equal input 'w) (member 'up (available-dir player)))
+     (advance-to-dir player 'up))
+    ((and (equal input 'a) (member 'left (available-dir player)))
+     (advance-to-dir player 'left))
+    ((and (equal input 's) (member 'down (available-dir player)))
+     (advance-to-dir player 'down))
+    ((and (equal input 'd) (member 'right (available-dir player)))
+     (advance-to-dir player 'right))
+    (t "invalid direction")))
     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;                                  ;;;
@@ -225,7 +299,7 @@
   (let ((list nil))
     (loop for mon in *monsters* do
 	 (if (same-loc-p (get-location mon) xy-point)
-	     (setq list (append list mon))))
+	     (setq list (append2 list mon))))
     list))
        
 (defun print-map ()
@@ -235,9 +309,12 @@
   (dotimes (i *mapdim*) ;iterate rows
     (format t "I")
     (dotimes (j *mapdim*) ;iterate columns inside a row
-      (if (monsters-in-point (cons j (- *mapdim* i)))
-	  (format t "~A" (get-avatar (monsters-in-point (cons j (- *mapdim* i)))))
+      ;;;Here -1 for the Y coordinate because mapdim is 30
+      ;;;and the indices go 0...29
+      (if (monsters-in-point (cons j (- *mapdim* i 1)))
+	  (format t "~A" (get-avatar (car (monsters-in-point (cons j (- *mapdim* i 1))))))
 	  (format t " ")))
     (format t "I")
     (terpri))
-  (loop repeat (+ 2 *mapdim*) do (format t "="))) ;bottom frame
+  (loop repeat (+ 2 *mapdim*) do (format t "="))
+  (format t " Player health: ~D%" (get-health *player*))) ;bottom frame
