@@ -2,6 +2,10 @@
 ;;;Global Variables;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+;;;Live-evaluation input variable
+(defvar *input* T)
+
 ;;;Map lists
 (defvar *mapx* '0)
 (defvar *mapy* '0)
@@ -99,11 +103,16 @@
       )
     )
   )
-    
 
-;;;Is there an item in current location?
+
 (defun item-here-p ()
+  "Is here an item in current location?"
   (member (list *mapx* *mapy*) *itemlist* :test 'equal)
+  )
+
+(defun itemhere ()
+  "Returns the item in current location"
+  (iteminpoint *mapx* *mapy*)
   )
 
 ;;;Symbol to string
@@ -297,35 +306,43 @@
 ;;;Creaters, getters, setters;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;Character class
+(defclass gamecharacter ()
+  (
+   (name
+    :initarg :name)
+   (class
+    :initarg :class)
+   (health
+    :initarg :health
+    :initform '100)
+   (experience
+    :initarg :experience
+    :initform '0)
+   (inventory
+    :initarg :inventory
+    :initform '())
+   )
+  )
+
 (defun newcharacter (name class)
-  "Creates a new character (list)"
-  (list name class '100 '0 (newinventory))
+  "Creates a new character object"
+  (make-instance 'gamecharacter :name name :class class)
   )
-
-(defun makechar ()
-  "Creates a new character with user provided name and class"
-  (let ((name nil) (class nil))
-    (format t "Enter name:")
-    (setf name (read))
-    (format t "Enter class:")
-    (setf class (read))
-    (newcharacter name class)
-    )
-  )
-
+  
 (defun getname (character)
   "Returns the name of the character"
-  (first character)
+  (slot-value character 'name)
   )
 
 (defun getclass (character)
   "Returns the class of the character"
-  (second character)
+  (slot-value character 'class)
   )
 
 (defun gethealth (character)
   "Returns health of the character"
-  (third character)
+  (slot-value character 'health)
   )
 
 (defun healthbar (character)
@@ -338,34 +355,36 @@
 
 (defun getxp (character)
   "Returns XP points for the character"
-  (fourth character)
+  (slot-value character 'experience)
   )
 
 ;;;Getter for character inventory (list)
 (defun getinventory (character)
-  (fifth character)
+  (slot-value character 'inventory)
   )
 
 ;;;Increase XP points of a character
 (defun addxp (character points)
-  (setf (fourth character) (+ (fourth character) points))
+  (setf (slot-value character 'experience) (+ (slot-value character 'experience) points))
   )
 
 ;;;Reset XP points of a character
 (defun resetxp (character)
-  (setf (fourth character) '0)
+  (setf (slot-value character 'experience) '0)
   )
 
 ;;;Decrease the health of a character
 (defun losehealth (character health)
-  (setf (third character) (- (third character) health))
-  (if (< (third character) 0) (setf (third character) 0))
+  (setf (slot-value character 'health) (- (slot-value character 'health) health))
+  (if (< (gethealth character) 0) (setf (slot-value character 'health) 0))
   )
 
 ;;;Get level for a character
 (defun getrank (character)
   (cond ((< (getxp character) '7) (return-from getrank 'Novice))
 	((< (getxp character) '10) (return-from getrank 'Warrior))
+	((< (getxp character) '20) (return-from getrank 'Champion))
+	((< (getxp character) '30) (return-from getrank 'Master))
 	(t (return-from getrank 'Unknown))
 	)
   )
@@ -378,13 +397,21 @@
 ;;;Adding an item to the inventory of a character
 (defun additem (character item)
   (if (null (car (getinventory character)))
-      (setf (fifth character) (list item))
-      (setf (fifth character) (push item (fifth character)))
+      (setf (slot-value character 'inventory) (list item))
+      (setf (slot-value character 'inventory) (push item (slot-value character 'inventory)))
       )
   )
 
 (defun item-prompt (character)
   "Asks if player wants to pick up item if exists"
+  (if (item-here-p)
+      (progn
+	(format t "Will you pick up ~A?" (itemhere))
+	(let ((input (read)))
+	  (if (equal input "y") (additem character (itemhere)))
+	  )
+	)
+      )
   )
 
 ;;;Present character as text
@@ -457,8 +484,7 @@
       (progn
 	(losehealth character '40)
 	(format t "You met the boss and lost health!")
-	(terpri)))
-  )
+	(terpri))))
 
 ;;;Move boss to a random direction
 (defun moveboss (boss)
@@ -478,16 +504,28 @@
       ;;Case up
       ((eql number 3)
        (if (< curry *ymax*) (incf (third boss))))
-      )
-    )
-  )   
+      )))   
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun liveval ()
+  "Read-eval loop for live evaluation"
+  (setq *input* T)
+  (let ((commands nil))
+  (loop while *input* do
+       (clear-input)
+       (if (listen) (append commands (read-char-no-hang))))
+  (print commands)
+  ))
+  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;Game Main function
 (defun game (character)
   (setf *mapx* 0)
   (setf *mapy* 0)
-  (setf (third character) 100)
+  (setf (slot-value character 'health) 100)
   (resetxp character)
   (createitems 11)
   (setitems)
@@ -511,11 +549,12 @@
 	 (terpri)
 	 (format t "Items: ~A" (iteminpoint *mapx* *mapy*))
 	 (terpri)
-	 (random-item)
+	 (item-prompt character)
+	 ;;;(random-item)
 	 (terpri)
 	 (format t "Monsters: ~A" (getmonster character))
 	 (terpri)
-	 (if (eql (third character) 0)
+	 (if (eql (gethealth character) 0)
 	     (progn
 	       (format t "You died - Game over. ")
 	       (return)))
