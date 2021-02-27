@@ -7,7 +7,7 @@
 (defun monsters-in-point (xy-point)
   "Return monsters in point"
   (let ((list nil))
-    (loop for mon in *monsters* do
+    (loop for mon in *game-objects* do
 	 (if (same-loc-p (get-location mon) xy-point)
 	     (setq list (append2 list mon))))
     list))

@@ -2,17 +2,21 @@
 ;;;;CLOS methods;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;Monster methods;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;Monster and Item  methods;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-monster ((obj monster))
   "Get information of monster"
   (format t "Monster: ~A; Level: ~D; Health: ~D; Location: ~A" (get-avatar obj) (get-level obj) (get-health obj) (get-location obj)))
 
-(defmethod get-location ((obj monster))
-  "Get location of a monster"
+(defmethod get-location ((obj game-object))
+  "Get location of a game object"
   (location obj))
+
+(defmethod get-item-type ((obj item))
+  "Get the type of an item object"
+  (item-type obj))
 
 (defmethod x-loc ((obj monster))
   "Get X coordinate of a monster"
@@ -31,8 +35,8 @@
   (with-slots (health) obj
     (setq health (+ health change))))
 
-(defmethod get-avatar ((obj monster))
-  "Get the avatar of a monster"
+(defmethod get-avatar ((obj game-object))
+  "Get the avatar of a game object"
   (avatar obj))
 
 (defmethod get-level ((obj monster))
@@ -48,7 +52,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod set-location ((obj monster) loc)
-  "Set location of a monster"
+  "Set location of a game object"
   (with-slots (location) obj
     (setq location loc)))
 
@@ -61,16 +65,16 @@
 (defmethod player-direction ((mon monster) (player monster))
   "What direction the player is in from the monster"
   (cond
-    ;;;X is the same, monster's Y higher
+    ;;X is the same, monster's Y higher
     ((and (equal (x-loc mon) (x-loc player))
 	  (> (y-loc mon) (y-loc player))) 'down)
-    ;;;X is the same, player's Y higher
+    ;;X is the same, player's Y higher
     ((and (equal (x-loc mon) (x-loc player))
 	  (< (y-loc mon) (y-loc player))) 'up)
-    ;;;Y is the same, monster's X higher
+    ;;Y is the same, monster's X higher
     ((and (> (x-loc mon) (x-loc player))
 	  (equal (y-loc mon) (y-loc player))) 'left)
-    ;;;Y is the same, player's X higher
+    ;;Y is the same, player's X higher
     ((and (< (x-loc mon) (x-loc player))
 	  (equal (y-loc mon) (y-loc player))) 'right)
     (T "not in a straight line or in same position")))
@@ -80,6 +84,15 @@
   (if (same-loc-p (get-location mon) (get-location player))
       (set-health player -5)))
 
+(defmethod confront ((item item) (player monster))
+  "Affect player's health if in same position with an item"
+  (cond
+    ;;Item is a Potion
+    ((eql (get-item-type *item1*) 'potion)
+     ;;Give the player 15 Hit Points
+     (if (same-loc-p (get-location item) (get-location player))
+	 (set-health player 5)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;Directional methods;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -87,32 +100,32 @@
 (defmethod available-dir ((obj monster))
   "Available directions for a monster"
   (cond
-    ;;; x=0 & y=0
+    ;; x=0 & y=0
     ((and (zerop (x-loc obj)) (zerop (y-loc obj))) '(up right))
-    ;;; x=max & y=max
+    ;; x=max & y=max
     ((and (equal (x-loc obj) (xmax)) (equal (y-loc obj) (ymax))) '(down left))
-    ;;; x=0 & y=max
+    ;; x=0 & y=max
     ((and (zerop (x-loc obj)) (equal (y-loc obj) (ymax))) '(down right))
-    ;;; x=max & y=0
+    ;; x=max & y=0
     ((and (equal (x-loc obj) (xmax)) (zerop (y-loc obj))) '(up left))
-    ;;; x=max
+    ;; x=max
     ((equal (x-loc obj) (xmax)) '(up down left))
-    ;;; y=max
+    ;; y=max
     ((equal (y-loc obj) (ymax)) '(down left right))
-    ;;; x=0
+    ;; x=0
     ((zerop (x-loc obj)) '(up right down))
-    ;;; y=0
+    ;; y=0
     ((zerop (y-loc obj)) '(up right left))
     (t '(up right down left))))
 
 (defmethod random-dir ((obj monster))
   "Select a direction randomly (for simulation etc.)"
   (if
-   ;;;If distance is under 5 and only on every other time...
+   ;;If distance is under 5 and only on every other time...
    (and (< (loc-difference obj *player*) 5) (equal 0 (mod *rpg-iter* 2)))
-   ;;;...move to player's direction
+   ;;...move to player's direction
    (player-direction obj *player*)
-   ;;;Else move randomly
+   ;;Else move randomly
    (let* ((available-dirs (available-dir obj))
 	  (rand-dir (nth (random (length available-dirs)) available-dirs)))
      rand-dir)))
