@@ -9,7 +9,11 @@
    (location
     :initarg :location
     :initform '(0 . 0)
-    :accessor location)))
+    :accessor location)
+   (visible
+    :initarg :visible
+    :initform T
+    :accessor visible)))
   
 
 (defclass monster (game-object)

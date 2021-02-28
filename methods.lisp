@@ -47,6 +47,20 @@
   "Returns true if a player object"
   (player obj))
 
+(defmethod visiblep ((obj game-object))
+  "Is the object visible in the game"
+  (visible obj))
+
+(defmethod make-invisible ((obj game-object))
+  "Make object inivisible in the game"
+  (with-slots (visible) obj
+    (setq visible nil)))
+
+(defmethod make-visible ((obj game-object))
+  "Make object visible in the game"
+  (with-slots (visible) obj
+    (setq visible T)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;Locational methods;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -91,7 +105,9 @@
     ((eql (get-item-type *item1*) 'potion)
      ;;Give the player 15 Hit Points
      (if (same-loc-p (get-location item) (get-location player))
-	 (set-health player 5)))))
+	 (progn
+	   (set-health player 5)
+	   (make-invisible item))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;Directional methods;;;;;;;;;;;;;;
