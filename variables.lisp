@@ -10,6 +10,10 @@
     :initarg :location
     :initform '(0 . 0)
     :accessor location)
+   (floor-level
+    :initarg :floor-level
+    :initform '0
+    :accessor floor-level)
    (visible
     :initarg :visible
     :initform T
@@ -41,17 +45,15 @@
 
 ;;;Map size
 (defvar *mapdim* nil)
-(setq *mapdim* 30)
 
 ;;;Game iterations
 (defvar *rpg-iter* nil)
-(setq *rpg-iter* 0)
+
+;;;Player score
+(defvar *score* nil)
 
 ;;;Monster list
 (defvar *game-objects* nil)
-
-;;;Item list
-;;;(defvar *items* nil)
 
 ;;;Monster objects for testing
 (defvar *player* nil)
@@ -63,23 +65,13 @@
 (defvar *item1* nil)
 (defvar *item2* nil)
 
-;;;Create player object
-(setq *player* (make-instance 'monster :avatar 'P :location '(0 . 0) :player T))
-
-;;;Create monster objects
-(setq *mon1* (make-instance 'monster :avatar '@ :location '(29 . 29)))
-(setq *mon2* (make-instance 'monster :avatar '& :location '(0 . 20)))
-(setq *mon3* (make-instance 'monster :avatar '% :location '(3 . 9)))
-
-;;;Create item objects
-(setq *item1* (make-instance 'item :avatar 'H :location '(15 . 15) :item-type 'potion))
-(setq *item2* (make-instance 'item :avatar 'H :location '(20 . 20) :item-type 'potion))
-
 ;;;Initialize game environment
 (defun initialize-game ()
   "Initialize the global variables"
   (progn
+    (setq *mapdim* 26)
     (setq *rpg-iter* 0)
+    (setq *score* 0)
     (setq *game-objects* nil)
     (setq *player* nil)
     (setq *mon1* nil)
@@ -90,7 +82,7 @@
     ;;Create player object
     (setq *player* (make-instance 'monster :avatar 'P :location '(0 . 0) :player T))
     ;;Create monster objects
-    (setq *mon1* (make-instance 'monster :avatar '@ :location '(29 . 29)))
+    (setq *mon1* (make-instance 'monster :avatar '@ :location '(21 . 21)))
     (setq *mon2* (make-instance 'monster :avatar '& :location '(0 . 20)))
     (setq *mon3* (make-instance 'monster :avatar '% :location '(3 . 9)))
     ;;Create item objects

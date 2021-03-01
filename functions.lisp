@@ -58,3 +58,21 @@
   (if (null list)
       (setq list (cons element nil))
       (setq list (cons element list))))
+
+(defun random-avatar ()
+  "Return random avatar (ASCII code 33 - 64)"
+  (intern (string (code-char (+ 33 (random 32))))))
+
+(defun random-location ()
+  "Return random location"
+  (cons (random *mapdim*) (random *mapdim*)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;Object functions;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun make-random-monster ()
+  "Make and return a monster with random attributes"
+  (make-instance 'monster
+		 :avatar (random-avatar)
+		 :location (random-location)))

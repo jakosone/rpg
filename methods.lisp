@@ -94,8 +94,12 @@
     (T "not in a straight line or in same position")))
      
 (defmethod confront ((mon monster) (player monster))
-  "Hurt player if in same position with a monster"
+  "Hurt player if close to a monster"
+  ;; If same location, hurt by 10 HP
   (if (same-loc-p (get-location mon) (get-location player))
+      (set-health player -10))
+  ;; If next to monster, hurt by 5 HP
+  (if (eql (loc-difference mon player) 1)
       (set-health player -5)))
 
 (defmethod confront ((item item) (player monster))
@@ -103,7 +107,7 @@
   (cond
     ;;Item is a Potion
     ((eql (get-item-type *item1*) 'potion)
-     ;;Give the player 15 Hit Points
+     ;;Give the player 5 Hit Points
      (if (same-loc-p (get-location item) (get-location player))
 	 (progn
 	   (set-health player 5)
@@ -138,7 +142,7 @@
   "Select a direction randomly (for simulation etc.)"
   (if
    ;;If distance is under 5 and only on every other time...
-   (and (< (loc-difference obj *player*) 5) (equal 0 (mod *rpg-iter* 2)))
+   (and (< (loc-difference obj *player*) 10) (equal 0 (mod *rpg-iter* 2)))
    ;;...move to player's direction
    (player-direction obj *player*)
    ;;Else move randomly

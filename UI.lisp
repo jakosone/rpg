@@ -43,4 +43,9 @@
     (format t "I")
     (terpri))
   (loop repeat (+ 2 *mapdim*) do (format t "="))
-  (format t " Player health: ~D%" (get-health *player*))) ;bottom frame
+  (terpri)
+  (format t "Player health: ~D%" (get-health *player*))
+  (format t " | Class: Rookie")
+  (format t " | Score: ~D" *score*))
+
+
