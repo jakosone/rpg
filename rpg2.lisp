@@ -9,15 +9,7 @@
 ;;;The refactored version;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;Assign objects to global variables
-;;;Items also added to monsters list
-;; (setq *game-objects* nil)
-;; (setq *game-objects* (append2 *game-objects* *player*))
-;; (setq *game-objects* (append2 *game-objects* *mon1*))
-;; (setq *game-objects* (append2 *game-objects* *mon2*))
-;; (setq *game-objects* (append2 *game-objects* *mon3*))
-;; (setq *game-objects* (append2 *game-objects* *item1*))
-;; (setq *game-objects* (append2 *game-objects* *item2*))
+(in-package :rpg2)
 
 (defun advance-monsters ()
   "Advance/move all monsters in the game"

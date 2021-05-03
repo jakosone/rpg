@@ -6,6 +6,8 @@
 ;;;;;Monster and Item methods;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(in-package :rpg2)
+
 (defmethod get-monster ((obj monster))
   "Get information of monster"
   (format t "Monster: ~A; Level: ~D; Health: ~D; Location: ~A" (get-avatar obj) (get-level obj) (get-health obj) (get-location obj)))

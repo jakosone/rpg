@@ -2,6 +2,10 @@
 ;;;;;CLOS objects;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defpackage :rpg2 (:use :common-lisp))
+(in-package :rpg2)
+
+
 (defclass game-object ()
   ((avatar ;Avatar of the object visible in game
     :initarg :avatar
@@ -34,7 +38,7 @@
     :initform 'normal
     :accessor status)
    (player
-    :initarg :player ;Player or not, the player is also a Monster
+    :initarg :player ;the player object is also a Monster
     :initform nil
     :accessor player)))
 
@@ -47,8 +51,14 @@
 ;;;;;Global variables;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+
 ;;;Map size
 (defvar *mapdim* nil)
+
+;;;Messages for player
+(defvar *message* nil)
+(setq *message* " ")
 
 ;;;Current visible floor in the game
 (defvar *floor-level* nil)
@@ -92,16 +102,13 @@
   "Initialize the global variables"
   (progn
     (setq *mapdim* 26)
+    (setq *message* " ")
     (setq *floor-level* 0)
     (setq *rpg-iter* 0)
     (setq *score* 0)
     (setq *game-objects* nil)
     (setq *player* nil)
-    ;;(setq *mon1* nil)
-    ;;(setq *mon2* nil)
-    ;;(setq *mon3* nil)
-    ;;(setq *item1* nil)
-    ;;(setq *item2* nil)
+
     ;;Create player object
     (setq *player* (make-instance 'monster :avatar '@ :location '(0 . 0) :player T))
     (setq *game-objects* (append2 *game-objects* *player*))))

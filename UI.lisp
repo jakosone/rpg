@@ -4,6 +4,8 @@
 ;;;                                  ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(in-package :rpg2)
+
 (defun monsters-in-point (xy-point)
   "Return monsters in point (x . y)"
   (let ((list nil))
@@ -48,6 +50,7 @@
   (format t " | Class: ~A" (get-player-class))
   (format t " | Score: ~D" *score*)
   (terpri)
-  (format t "Status: ~A" (get-status *player*)))
+  (format t "Status: ~A~%" (get-status *player*))
+  (format t "~A~%" *message*))
 
 

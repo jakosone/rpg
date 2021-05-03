@@ -1,9 +1,10 @@
 This is the instructions for the game RPG 2.
 
 *********Starting the game******************
-- Compile game by compiling rpg2.asd &
-  (asdf:load-system :rpg2)
-- Run (rpg)
+- Compile and start game:
+  1. compile rpg2.asd
+  2. evaluate (asdf:load-system :rpg2)
+  3. evaluate (rpg)
 
 *********Moving in the game*****************
 Type:

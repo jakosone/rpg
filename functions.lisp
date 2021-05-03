@@ -5,6 +5,8 @@
 ;;;This file has all the general
 ;;;functions for the RPG game.
 
+(in-package :rpg2)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;UI functions;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
