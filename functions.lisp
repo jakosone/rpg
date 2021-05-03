@@ -76,3 +76,10 @@
   (make-instance 'monster
 		 :avatar (random-avatar)
 		 :location (random-location)))
+
+(defun make-random-potion ()
+  "Make and return a health item with random location"
+  (make-instance 'item
+		 :avatar 'H
+		 :item-type 'potion
+		 :location (random-location)))

@@ -13,6 +13,11 @@ S - down
 D - right
 
 ********Avatars in the game*****************
-Player (you) - P
-Potions - H
-The other ones are moving monsters.
+@ - Player (you)
+H - Potion
+X - Poison
+
+The other ones are monsters e.g.:
+¤ - Deadly Bee
+& -
+% - 

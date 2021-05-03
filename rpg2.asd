@@ -3,8 +3,8 @@
 
 (asdf:defsystem #:rpg2
   :components ((:file "variables")
-	       (:file "functions"
-		      :depends-on ("variables"))
+	       (:file "functions")
 	       (:file "methods")
+	       (:file "player")
 	       (:file "UI")
 	       (:file "rpg2")))

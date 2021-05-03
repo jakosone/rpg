@@ -3,7 +3,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;Monster and Item  methods;;;;;;;;;
+;;;;;Monster and Item methods;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-monster ((obj monster))
@@ -43,9 +43,17 @@
   "Get level of a monster"
   (level obj))
 
+(defmethod get-status ((obj monster))
+  "Get status of a monster"
+  (status obj))
+
 (defmethod playerp ((obj monster))
   "Returns true if a player object"
   (player obj))
+
+(defmethod playerp ((obj item))
+  "Always nil for item objects"
+  nil)
 
 (defmethod visiblep ((obj game-object))
   "Is the object visible in the game"
@@ -60,6 +68,12 @@
   "Make object visible in the game"
   (with-slots (visible) obj
     (setq visible T)))
+
+(defmethod poison ((obj monster))
+  "Set monster's status as poisoned"
+  (with-slots (status) obj
+    (setq status 'poisoned)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;Locational methods;;;;;;;;;;;;
@@ -106,12 +120,17 @@
   "Affect player's health if in same position with an item"
   (cond
     ;;Item is a Potion
-    ((eql (get-item-type *item1*) 'potion)
+    ((eql (get-item-type item) 'potion)
      ;;Give the player 5 Hit Points
      (if (same-loc-p (get-location item) (get-location player))
 	 (progn
 	   (set-health player 5)
-	   (make-invisible item))))))
+	   (make-invisible item))))
+    ;;Item is a Poison
+    ((eql (get-item-type item) 'poison)
+     ;;Poison the player
+     (poison player))
+    ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;Directional methods;;;;;;;;;;;;;;
@@ -158,6 +177,7 @@
     ((equal direction 'right) (set-location obj (x+1 (get-location obj))))
     ((equal direction 'left) (set-location obj (x-1 (get-location obj))))))
 
+
 (defmethod advance-player ((player monster) input)
   "Advance player according to user input"
   (cond
@@ -170,3 +190,7 @@
     ((and (equal input 'd) (member 'right (available-dir player)))
      (advance-to-dir player 'right))
     (t "invalid direction")))
+
+(defmethod monster-alive-p ((monster monster))
+  "Is a monster or Player alive?"
+  (> (get-health monster) 0))

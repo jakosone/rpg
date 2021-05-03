@@ -3,18 +3,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass game-object ()
-  ((avatar
+  ((avatar ;Avatar of the object visible in game
     :initarg :avatar
     :accessor avatar)
    (location
-    :initarg :location
+    :initarg :location ;(X . Y) cons pair of location
     :initform '(0 . 0)
     :accessor location)
-   (floor-level
+   (floor-level ;Game floor/level on which the object is located
     :initarg :floor-level
     :initform '0
     :accessor floor-level)
-   (visible
+   (visible ;Visible in game
     :initarg :visible
     :initform T
     :accessor visible)))
@@ -29,8 +29,12 @@
     :initarg :health
     :initform '100
     :accessor health)
+   (status ;e.g. "poisoned"
+    :initarg :status
+    :initform 'normal
+    :accessor status)
    (player
-    :initarg :player
+    :initarg :player ;Player or not, the player is also a Monster
     :initform nil
     :accessor player)))
 
@@ -45,6 +49,9 @@
 
 ;;;Map size
 (defvar *mapdim* nil)
+
+;;;Current visible floor in the game
+(defvar *floor-level* nil)
 
 ;;;Game iterations
 (defvar *rpg-iter* nil)
@@ -65,11 +72,22 @@
 (defvar *item1* nil)
 (defvar *item2* nil)
 
+(defun create-n-monsters (number)
+  "Create N monsters in the game"
+  (dotimes (i number)
+    (setq *game-objects* (cons (make-random-monster) *game-objects*))))
+
+(defun create-n-potions (number)
+  "Create N health items in the game"
+  (dotimes (i number)
+    (setq *game-objects* (cons (make-random-potion) *game-objects*))))
+
 ;;;Initialize game environment
 (defun initialize-game ()
   "Initialize the global variables"
   (progn
     (setq *mapdim* 26)
+    (setq *floor-level* 0)
     (setq *rpg-iter* 0)
     (setq *score* 0)
     (setq *game-objects* nil)
@@ -80,18 +98,6 @@
     (setq *item1* nil)
     (setq *item2* nil)
     ;;Create player object
-    (setq *player* (make-instance 'monster :avatar 'P :location '(0 . 0) :player T))
-    ;;Create monster objects
-    (setq *mon1* (make-instance 'monster :avatar '@ :location '(21 . 21)))
-    (setq *mon2* (make-instance 'monster :avatar '& :location '(0 . 20)))
-    (setq *mon3* (make-instance 'monster :avatar '% :location '(3 . 9)))
-    ;;Create item objects
-    (setq *item1* (make-instance 'item :avatar 'H :location '(15 . 15) :item-type 'potion))
-    (setq *item2* (make-instance 'item :avatar 'H :location '(20 . 20) :item-type 'potion))
-    (setq *game-objects* (append2 *game-objects* *player*))
-    (setq *game-objects* (append2 *game-objects* *mon1*))
-    (setq *game-objects* (append2 *game-objects* *mon2*))
-    (setq *game-objects* (append2 *game-objects* *mon3*))
-    (setq *game-objects* (append2 *game-objects* *item1*))
-    (setq *game-objects* (append2 *game-objects* *item2*))))
+    (setq *player* (make-instance 'monster :avatar '@ :location '(0 . 0) :player T))
+    (setq *game-objects* (append2 *game-objects* *player*))))
   
