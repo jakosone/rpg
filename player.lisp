@@ -12,3 +12,9 @@
     ((< *score* 20000) 'Commander)
     ((< *score* 25000) 'Knight)
     (T 'Champion)))
+
+(defun swing-sword ()
+  "Hurt nearby monsters (with the sword)"
+  (loop for monster in (near-monsters) ;monsters near player
+     do
+       (set-health monster -20))) ;hurt monster by 20HP

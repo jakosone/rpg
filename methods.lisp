@@ -30,10 +30,16 @@
   "Get health of a monster"
   (health obj))
 
+(defmethod get-health ((obj item))
+  "Health of an item is always nil"
+  nil)
+
 (defmethod set-health ((obj monster) change)
   "Set health for a monster object"
   (with-slots (health) obj
-    (setq health (+ health change))))
+    (if (> (+ health change) 0) ;prevent negative health
+	(setq health (+ health change))
+	(setq health 0))))
 
 (defmethod get-avatar ((obj game-object))
   "Get the avatar of a game object"
@@ -69,11 +75,27 @@
   (with-slots (visible) obj
     (setq visible T)))
 
-(defmethod poison ((obj monster))
+(defmethod poison ((monster monster))
   "Set monster's status as poisoned"
-  (with-slots (status) obj
+  (with-slots (status) monster
     (setq status 'poisoned)))
 
+(defmethod poison-hurt ((monster monster))
+  "Hurt the monster/player if poisoned"
+  (if (poisoned-p monster) (set-health monster -2)))
+
+(defmethod poisoned-p ((obj monster))
+  "Is monster e.g. Player, poisoned"
+  (eql (get-status obj) 'poisoned))
+
+(defmethod monster-p ((obj game-object))
+  "Is object a monster object"
+  (eql (class-name (class-of obj)) 'monster))
+
+(defmethod npc-p ((obj game-object))
+  "Is object non-player"
+  (and (monster-p obj)
+       (not (playerp obj))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;Locational methods;;;;;;;;;;;;
@@ -118,19 +140,20 @@
 
 (defmethod confront ((item item) (player monster))
   "Affect player's health if in same position with an item"
-  (cond
-    ;;Item is a Potion
-    ((eql (get-item-type item) 'potion)
-     ;;Give the player 5 Hit Points
-     (if (same-loc-p (get-location item) (get-location player))
+  (if (same-loc-p (get-location item) (get-location player))
+      (cond
+	;;Item is a Potion
+	((eql (get-item-type item) 'potion)
+	 ;;Give the player 5 Hit Points
 	 (progn
 	   (set-health player 5)
-	   (make-invisible item))))
-    ;;Item is a Poison
-    ((eql (get-item-type item) 'poison)
-     ;;Poison the player
-     (poison player))
-    ))
+	   (make-invisible item)))
+	;;Item is a Poison
+	((eql (get-item-type item) 'poison)
+	 ;;Poison the player
+	 (progn
+	   (poison player)
+	   (make-invisible item))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;Directional methods;;;;;;;;;;;;;;
@@ -181,6 +204,7 @@
 (defmethod advance-player ((player monster) input)
   "Advance player according to user input"
   (cond
+    ((equal input 'i) (swing-sword))
     ((and (equal input 'w) (member 'up (available-dir player)))
      (advance-to-dir player 'up))
     ((and (equal input 'a) (member 'left (available-dir player)))

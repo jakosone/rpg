@@ -74,6 +74,7 @@
 (defun make-random-monster ()
   "Make and return a monster with random attributes"
   (make-instance 'monster
+		 :health '30
 		 :avatar (random-avatar)
 		 :location (random-location)))
 
@@ -82,4 +83,11 @@
   (make-instance 'item
 		 :avatar 'H
 		 :item-type 'potion
+		 :location (random-location)))
+
+(defun make-random-poison ()
+  "Make and return a poison item with random location"
+  (make-instance 'item
+		 :avatar 'X
+		 :item-type 'poison
 		 :location (random-location)))

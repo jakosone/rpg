@@ -82,6 +82,11 @@
   (dotimes (i number)
     (setq *game-objects* (cons (make-random-potion) *game-objects*))))
 
+(defun create-n-poisons (number)
+  "Create N poison items in the game"
+  (dotimes (i number)
+    (setq *game-objects* (cons (make-random-poison) *game-objects*))))
+
 ;;;Initialize game environment
 (defun initialize-game ()
   "Initialize the global variables"
@@ -92,11 +97,11 @@
     (setq *score* 0)
     (setq *game-objects* nil)
     (setq *player* nil)
-    (setq *mon1* nil)
-    (setq *mon2* nil)
-    (setq *mon3* nil)
-    (setq *item1* nil)
-    (setq *item2* nil)
+    ;;(setq *mon1* nil)
+    ;;(setq *mon2* nil)
+    ;;(setq *mon3* nil)
+    ;;(setq *item1* nil)
+    ;;(setq *item2* nil)
     ;;Create player object
     (setq *player* (make-instance 'monster :avatar '@ :location '(0 . 0) :player T))
     (setq *game-objects* (append2 *game-objects* *player*))))

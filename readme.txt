@@ -11,13 +11,11 @@ W - up
 A - left
 S - down
 D - right
+I - swing your sword
 
 ********Avatars in the game*****************
 @ - Player (you)
 H - Potion
 X - Poison
 
-The other ones are monsters e.g.:
-¤ - Deadly Bee
-& -
-% - 
+The other ones are monsters.
