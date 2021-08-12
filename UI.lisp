@@ -51,6 +51,16 @@
   (format t " | Score: ~D" *score*)
   (terpri)
   (format t "Status: ~A~%" (get-status *player*))
-  (format t "~A~%" *message*))
+  (format t "~A~%" *message*)
+  (setq *message* "")) ;message back to empty after presenting
 
+(defun game-over-screen ()
+  "Print the Game Over screen"
+  (terpri)
+  (loop repeat 45 do (format t "="))
+  (terpri)
+  (format t "You died! With score ~D and rank ~A." *score* (get-player-class))
+  (terpri)
+  (loop repeat 45 do (format t "="))
+  (terpri))
 

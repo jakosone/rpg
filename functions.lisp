@@ -62,8 +62,8 @@
       (setq list (cons element list))))
 
 (defun random-avatar ()
-  "Return random avatar (ASCII code 33 - 64)"
-  (intern (string (code-char (+ 33 (random 32))))))
+  "Return random avatar (ASCII code 33 - 63)"
+  (intern (string (code-char (+ 33 (random 31)))))) ;@ omitted
 
 (defun random-location ()
   "Return random location"
@@ -92,4 +92,18 @@
   (make-instance 'item
 		 :avatar 'X
 		 :item-type 'poison
+		 :location (random-location)))
+
+(defun make-random-antidote ()
+  "Make and return an antidote item with random location"
+  (make-instance 'item
+		 :avatar 'A
+		 :item-type 'antidote
+		 :location (random-location)))
+
+(defun make-boss-monster ()
+  "Make and return a boss monster with superior abilities"
+  (make-instance 'boss-monster
+		 :health '80
+		 :avatar '£
 		 :location (random-location)))

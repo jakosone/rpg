@@ -94,9 +94,14 @@
   "Is object a monster object"
   (eql (class-name (class-of obj)) 'monster))
 
+(defmethod boss-monster-p ((obj game-object))
+  "Is object a boss-monster object"
+  (eql (class-name (class-of obj)) 'boss-monster))
+
 (defmethod npc-p ((obj game-object))
   "Is object non-player"
-  (and (monster-p obj)
+  (and (or (monster-p obj) ;monster or...
+	   (boss-monster-p obj)) ;boss monster
        (not (playerp obj))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -135,10 +140,23 @@
   "Hurt player if close to a monster"
   ;; If same location, hurt by 10 HP
   (if (same-loc-p (get-location mon) (get-location player))
-      (set-health player -10))
+      (progn
+	(set-health player -10)
+	(setq *message* "Critical hit from a monster!")))
   ;; If next to monster, hurt by 5 HP
   (if (eql (loc-difference mon player) 1)
       (set-health player -5)))
+
+(defmethod confront ((boss boss-monster) (player monster))
+  "Hurt player if close to a boss monster"
+  ;; If same location, hurt by 20 HP
+  (if (same-loc-p (get-location boss) (get-location player))
+      (progn
+	(set-health player -20)
+	(setq *message* "Critical hit from the boss!")))
+  ;; If next to boss, hurt by 10 HP
+  (if (eql (loc-difference boss player) 1)
+      (set-health player -10)))
 
 (defmethod confront ((item item) (player monster))
   "Affect player's health if in same position with an item"
@@ -183,10 +201,24 @@
     (t '(up right down left))))
 
 (defmethod random-dir ((obj monster))
-  "Select a direction randomly (for simulation etc.)"
+  "Select a direction not-so-randomly for monsters"
+  ;;; Distance is not random for near monsters
   (if
-   ;;If distance is under 5 and only on every other time...
+   ;;If distance is under 10 and only on every other time...
    (and (< (loc-difference obj *player*) 10) (equal 0 (mod *rpg-iter* 2)))
+   ;;...move to player's direction
+   (player-direction obj *player*)
+   ;;Else move randomly
+   (let* ((available-dirs (available-dir obj))
+	  (rand-dir (nth (random (length available-dirs)) available-dirs)))
+     rand-dir)))
+
+(defmethod random-dir ((obj boss-monster))
+  "Select a direction for boss monsters"
+  ;;;Distance is not random for a near boss monster
+  (if
+   ;;If distance is under 15 and on every other time...
+   (and (< (loc-difference obj *player*) 15) (equal 0 (mod *rpg-iter* 2)))
    ;;...move to player's direction
    (player-direction obj *player*)
    ;;Else move randomly

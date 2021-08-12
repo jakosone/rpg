@@ -15,10 +15,13 @@
   "Advance/move all monsters in the game"
   (loop for mon in *game-objects*
      do
-       (if (npc-p mon) ;only if a non-player monster (NPC)
-	   (if (monster-alive-p mon) ;if alive
-	       (advance-to-dir mon (random-dir mon)) ;move
-	       (make-invisible mon))))) ;else remove
+       (if (npc-p mon)	;only if a non-player monster (NPC)
+	   (if (monster-alive-p mon)  ;if alive
+	       (progn
+		 (if (boss-monster-p mon) ;boss gets to turns!
+		     (advance-to-dir mon (random-dir mon)))
+		 (advance-to-dir mon (random-dir mon))) ;move randomly
+	       (make-invisible mon))))) ;remove dead monsters
 
 (defun confront-all ()
   "Confront monsters and items with the Player"
@@ -54,6 +57,7 @@
   "Main function"
   (initialize-game)
   (create-n-monsters 9)
+  (create-boss-monster)
   (create-n-potions 4)
   (create-n-poisons 6)
   (let ((input nil))
@@ -63,5 +67,7 @@
 	 (print-map)(terpri)
 	 (setq input (read))
 	 (advance-player *player* input)
-	 (if (equal input 'Q) (setq *rpg-iter* -1)))))
+	 (if (equal input 'Q) (setq *rpg-iter* -1))))
+  (if (not (monster-alive-p *player*))
+      (game-over-screen)))
  

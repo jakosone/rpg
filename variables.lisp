@@ -42,6 +42,8 @@
     :initform nil
     :accessor player)))
 
+(defclass boss-monster (monster) ())
+
 (defclass item (game-object)
   ((item-type
     :initarg :item-type
@@ -87,6 +89,10 @@
   (dotimes (i number)
     (setq *game-objects* (cons (make-random-monster) *game-objects*))))
 
+(defun create-boss-monster ()
+  "Create a boss monster in the game"
+  (setq *game-objects* (cons (make-boss-monster) *game-objects*)))
+
 (defun create-n-potions (number)
   "Create N health items in the game"
   (dotimes (i number)
@@ -96,6 +102,11 @@
   "Create N poison items in the game"
   (dotimes (i number)
     (setq *game-objects* (cons (make-random-poison) *game-objects*))))
+
+(defun create-n-antidotes (number)
+  "Create N antidote items in the game"
+  (dotimes (i number)
+    (setq *game-objects* (cons (make-random-antidote) *game-objects*))))
 
 ;;;Initialize game environment
 (defun initialize-game ()

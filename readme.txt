@@ -4,6 +4,7 @@ This is the instructions for the game RPG 2.
 - Compile and start game:
   1. compile rpg2.asd
   2. evaluate (asdf:load-system :rpg2)
+  3. switch to package :rpg2
   3. evaluate (rpg)
 
 *********Moving in the game*****************
