@@ -20,9 +20,18 @@
   "Hurt nearby monsters (with the sword)"
   (if (near-monsters)
       (loop for monster in (near-monsters) ;monsters near player
-	 do (progn
-	      (set-health monster -20) ;hurt monster by 20HP
-	      (if (monster-alive-p monster)
-		  (setq *message* "You hurt the monster!")
-		  (setq *message* "You killed the monster!"))))	  
+	 do (if (visiblep monster)
+		(progn
+		  (set-health monster -20) ;hurt monster by 20HP
+		  (if (monster-alive-p monster)
+		      (and
+		       (setq *message* "You hurt the monster!")
+		       (add-to-score 500))
+		      (and
+		       (setq *message* "You killed the monster!")
+		       (add-to-score 1000))))))  
       (setq *message* "You swung thin air!"))) 
+
+(defun add-to-score (points)
+  "Add points to player's score"
+  (setq *score* (+ *score* points)))

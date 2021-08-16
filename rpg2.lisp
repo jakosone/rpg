@@ -45,7 +45,7 @@
   (advance-monsters) ;move all the monsters
   (confront-all) ;confront monsters and items with player
   (poison-hurt *player*)
-  (setq *score* (+ *score* 100)))
+  (setq *score* (+ *score* 50)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;                                 ;;;
@@ -60,6 +60,7 @@
   (create-boss-monster)
   (create-n-potions 4)
   (create-n-poisons 6)
+  (create-n-antidotes 3)
   (let ((input nil))
     (loop while (and (>= *rpg-iter* 0) (monster-alive-p *player*)) do
 	 (incf *rpg-iter*)
@@ -70,4 +71,3 @@
 	 (if (equal input 'Q) (setq *rpg-iter* -1))))
   (if (not (monster-alive-p *player*))
       (game-over-screen)))
- 

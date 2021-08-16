@@ -139,28 +139,38 @@
 (defmethod confront ((mon monster) (player monster))
   "Hurt player if close to a monster"
   ;; If same location, hurt by 10 HP
-  (if (same-loc-p (get-location mon) (get-location player))
+  (if (and
+       (same-loc-p (get-location mon) (get-location player))
+       (visiblep mon))
       (progn
 	(set-health player -10)
 	(setq *message* "Critical hit from a monster!")))
   ;; If next to monster, hurt by 5 HP
-  (if (eql (loc-difference mon player) 1)
+  (if (and
+       (eql (loc-difference mon player) 1)
+       (visiblep mon))
       (set-health player -5)))
 
 (defmethod confront ((boss boss-monster) (player monster))
   "Hurt player if close to a boss monster"
   ;; If same location, hurt by 20 HP
-  (if (same-loc-p (get-location boss) (get-location player))
+  (if (and
+       (same-loc-p (get-location boss) (get-location player))
+       (visiblep boss))
       (progn
 	(set-health player -20)
 	(setq *message* "Critical hit from the boss!")))
   ;; If next to boss, hurt by 10 HP
-  (if (eql (loc-difference boss player) 1)
+  (if (and
+       (eql (loc-difference boss player) 1)
+       (visiblep boss))
       (set-health player -10)))
 
 (defmethod confront ((item item) (player monster))
   "Affect player's health if in same position with an item"
-  (if (same-loc-p (get-location item) (get-location player))
+  (if (and
+       (same-loc-p (get-location item) (get-location player))
+       (visiblep item))
       (cond
 	;;Item is a Potion
 	((eql (get-item-type item) 'potion)
@@ -250,5 +260,5 @@
     (t "invalid direction")))
 
 (defmethod monster-alive-p ((monster monster))
-  "Is a monster or Player alive?"
+  "Is a monster (or Player) alive?"
   (> (get-health monster) 0))
